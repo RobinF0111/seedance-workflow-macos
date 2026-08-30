@@ -6,6 +6,7 @@ const state = {
   currentPayload: null, currentResult: null, historyId: null, selectedHistory: null,
   currentFolderPath: "",
   qaPollToken: 0,
+  selectedTemplate: "",
   chatMessages: [], historyPromptDismissed: sessionStorage.getItem("historyPromptDismissed") === "1",
 };
 const elements = {
@@ -26,7 +27,40 @@ const elements = {
   historySearch: $("#historySearch"), refreshHistory: $("#refreshHistory"), historyList: $("#historyList"), historyDetail: $("#historyDetail"), historyDetailTitle: $("#historyDetailTitle"), historyDetailMeta: $("#historyDetailMeta"),
   loadHistoryInput: $("#loadHistoryInput"), loadHistoryOutput: $("#loadHistoryOutput"), loadHistoryAll: $("#loadHistoryAll"),
   chatMessages: $("#chatMessages"), chatInstruction: $("#chatInstruction"), sendRefine: $("#sendRefine"),
+  templateCards: $$('[data-template]'), templateHint: $("#templateHint"), targetPlatform: $("#targetPlatform"), targetDuration: $("#targetDuration"), targetRatio: $("#targetRatio"), creativeBrief: $("#creativeBrief"),
 };
+
+const creationTemplates = {
+  product: { name: "商品广告", story: "商品：\n核心卖点：\n目标人群：\n希望发生的画面：\n必须清晰保留的包装、Logo 或文字：", style: "干净、可信、突出商品材质与包装，不改变品牌标识。" },
+  portrait: { name: "人物短片", story: "主角：\n人物气质：\n地点与时间：\n希望人物完成的动作：\n情绪从什么状态变化到什么状态：", style: "以人物为中心，表演自然克制，保持五官、发型和服装连续。" },
+  story: { name: "剧情短剧", story: "人物与关系：\n故事发生在哪里：\n开场状态：\n关键冲突或转折：\n台词及说话人：\n结尾状态：", style: "电影化但不过度炫技，镜头服务人物关系与剧情转折。" },
+  image: { name: "图生视频", story: "请说明图片中的主体：\n希望主体如何运动：\n环境中哪些部分可以运动：\n哪些外观与构图必须保持不变：\n希望视频如何结束：", style: "保留原图主体、构图和材质，运动自然，避免无依据新增元素。" },
+  music: { name: "MV / 音乐视觉", story: "音乐氛围与节奏：\n主角或视觉主体：\n主要场景：\n希望出现的视觉段落：\n节奏高潮发生在哪里：", style: "画面节奏响应音乐结构，保持统一色彩与视觉母题。" },
+  look: { name: "镜头风格复刻", story: "要拍摄的主体与剧情：\n必须保留的人物、商品或场景事实：\n希望参考图只影响哪些视觉特征：", style: "请上传风格参考图。仅提取摄影、镜头、色彩、曝光与光影，不复制参考图中的人物和剧情。" },
+};
+
+function selectCreationTemplate(key) {
+  const template = creationTemplates[key];
+  if (!template) return;
+  const previousTemplate = state.selectedTemplate ? creationTemplates[state.selectedTemplate] : null;
+  state.selectedTemplate = key;
+  elements.templateCards.forEach((card) => card.classList.toggle("selected", card.dataset.template === key));
+  if (!elements.storyText.value.trim() || elements.storyText.value === previousTemplate?.story) elements.storyText.value = template.story;
+  if (!elements.styleText.value.trim() || elements.styleText.value === previousTemplate?.style) elements.styleText.value = template.style;
+  elements.templateHint.textContent = `已选择“${template.name}”。请补充带冒号的内容，也可以自由改写。`;
+  elements.storyText.focus();
+}
+
+function buildGuidedStory() {
+  const guide = [];
+  if (state.selectedTemplate) guide.push(`内容类型：${creationTemplates[state.selectedTemplate].name}`);
+  if (elements.targetPlatform.value !== "未指定") guide.push(`发布平台：${elements.targetPlatform.value}`);
+  if (elements.targetDuration.value !== "未指定") guide.push(`目标时长：${elements.targetDuration.value}`);
+  if (elements.targetRatio.value !== "未指定") guide.push(`画面比例：${elements.targetRatio.value}`);
+  if (elements.creativeBrief.value.trim()) guide.push(`一句话创意：${elements.creativeBrief.value.trim()}`);
+  const story = elements.storyText.value.trim();
+  return guide.length ? `【创作信息】\n${guide.join("\n")}\n\n【详细内容】\n${story}` : story;
+}
 
 function showToast(message, warning = false) {
   elements.pasteToast.textContent = message;
@@ -55,7 +89,7 @@ async function checkService() {
     state.apiReady = Boolean(status.ready); state.connectionMode = status.mode || "direct";
     elements.apiBadge.className = `api-badge ${status.ready ? "ready" : "offline"}`;
     elements.apiBadge.textContent = status.ready ? "OpenAI API 已连接" : "需要配置 API";
-    elements.executionHint.textContent = status.ready ? `V${status.version} 本机服务已连接；初版先输出，终版由异步 QA 在后台生成。` : "页面已连接本机服务；请先配置 API。";
+    elements.executionHint.textContent = status.ready ? `V${status.version} 服务已连接；快速初稿会先显示，专业优化稿随后完成。` : "本机服务已连接；首次生成前请配置你自己的 OpenAI API Key。";
   } catch {
     state.apiReady = false; elements.apiBadge.className = "api-badge offline"; elements.apiBadge.textContent = "本机服务未连接";
     elements.executionHint.textContent = "请通过软件启动器打开页面。";
@@ -203,26 +237,26 @@ function renderQaJob(job, versions = {}) {
       elements.outputV1.disabled = false;
       elements.copyV1.disabled = false;
       elements.sourceVersion.options[1].disabled = false;
-      elements.sourceVersion.options[1].textContent = "终版 Prompt（V1）";
+      elements.sourceVersion.options[1].textContent = "专业优化稿";
     }
     elements.v1Status.className = "version-note ready";
     const changedFromV0 = v1?.changedFromV0 ?? job.changed;
-    elements.v1Status.textContent = changedFromV0 === false ? "语义检查通过；终版与初版内容一致，并作为独立版本保留。" : "后台语义检查与定向修复完成；初版仍完整保留。";
-    elements.qaCount.textContent = "终版已就绪";
-    elements.resultStatus.textContent = "初版与终版均已就绪";
+    elements.v1Status.textContent = changedFromV0 === false ? "专业检查通过；优化稿与初稿内容一致。" : "专业检查与定向完善已完成；快速初稿仍完整保留。";
+    elements.qaCount.textContent = "优化稿已就绪";
+    elements.resultStatus.textContent = "初稿与优化稿均已就绪";
     appendQaParagraph(job.summary || "合理性、一致性和镜头描述检查已完成。");
   } else if (qaActiveStates.has(status)) {
     elements.v1Status.className = "version-note pending";
-    elements.v1Status.textContent = status === "queued" ? "初版已输出，终版任务正在排队。" : "初版已输出，后台正在检查并生成终版。";
+    elements.v1Status.textContent = status === "queued" ? "快速初稿已输出，专业检查正在排队。" : "快速初稿已输出，正在检查并生成优化稿。";
     elements.qaCount.textContent = "后台运行";
-    elements.resultStatus.textContent = "初版已就绪 · 终版后台生成";
-    appendQaParagraph(job.message || "正在检查剧情合理性、跨镜一致性与镜头描述质量；不会覆盖初版。", "qa-pending");
+    elements.resultStatus.textContent = "初稿已就绪 · 优化稿正在检查";
+    appendQaParagraph(job.message || "正在检查剧情合理性、跨镜头一致性与镜头描述质量；不会覆盖快速初稿。", "qa-pending");
   } else {
     elements.v1Status.className = "version-note failed";
-    elements.v1Status.textContent = "终版任务未完成；初版仍可正常使用。";
-    elements.qaCount.textContent = "终版未生成";
-    elements.resultStatus.textContent = "初版可用 · 终版任务未完成";
-    appendQaParagraph(job.error || job.message || "后台 QA 未能生成安全的终版，请重试。", "qa-error");
+    elements.v1Status.textContent = "优化稿未完成；快速初稿仍可正常使用。";
+    elements.qaCount.textContent = "优化稿未生成";
+    elements.resultStatus.textContent = "初稿可用 · 优化稿未完成";
+    appendQaParagraph(job.error || job.message || "专业检查未能生成可靠的优化稿，请重试。", "qa-error");
   }
   if (audit.summary) appendQaParagraph(`语义检查结论：${audit.summary}`);
   reportedIssues.forEach((issue) => {
@@ -236,7 +270,7 @@ function renderQaJob(job, versions = {}) {
     const tokenText = usage.total > 0 ? `${usage.input} 输入 / ${usage.output} 输出 / ${usage.total} 总计` : "模型未返回用量";
     const auditCallText = auditCalls > 0 ? `${auditCalls} 次` : (qaRetryStates.has(status) ? "未完成" : "未调用");
     const repairCallText = repairCalls > 0 ? `${repairCalls} 次` : (status.startsWith("repair_") ? "未完成" : "未调用");
-    appendQaParagraph(`后台终版耗时：${elapsed}；模型调用：语义检查 ${auditCallText}、定向完善 ${repairCallText}；Token：${tokenText}。`);
+    appendQaParagraph(`优化稿耗时：${elapsed}；专业检查 ${auditCallText}、定向完善 ${repairCallText}；Token 用量：${tokenText}。`);
   }
 }
 
@@ -257,7 +291,7 @@ async function pollQaJob(initialJob, token) {
     } catch (error) {
       if (token !== state.qaPollToken) return;
       elements.v1Status.className = "version-note failed";
-      elements.v1Status.textContent = "暂时无法读取终版进度；初版不受影响。";
+      elements.v1Status.textContent = "暂时无法读取优化稿进度；快速初稿不受影响。";
       elements.retryQa.hidden = false;
       appendQaParagraph(error.message, "qa-error");
       return;
@@ -275,12 +309,12 @@ function renderChecksV43(data) {
   elements.qaCount.textContent = `${checks.filter((x) => x.pass).length} / ${checks.length}`;
   const perf = data.performance || {};
   elements.qaIssues.innerHTML = "";
-  appendQaParagraph(`初版耗时：${(Number(perf.v0TotalMs || 0) / 1000).toFixed(2)} 秒；Token：${Number(perf.inputTokens || 0)} 输入 / ${Number(perf.outputTokens || 0)} 输出 / ${Number(perf.totalTokens || 0)} 总计。`);
+  appendQaParagraph(`快速初稿耗时：${(Number(perf.v0TotalMs || 0) / 1000).toFixed(2)} 秒；Token 用量：${Number(perf.inputTokens || 0)} 输入 / ${Number(perf.outputTokens || 0)} 输出 / ${Number(perf.totalTokens || 0)} 总计。`);
 }
 
 function renderResultV43(data, scroll = true) {
   const v0Prompt = data?.versions?.v0?.prompt || data?.finalPrompt;
-  if (!data || typeof v0Prompt !== "string" || !v0Prompt.trim()) throw new Error("服务未返回可用的初版 Prompt。");
+  if (!data || typeof v0Prompt !== "string" || !v0Prompt.trim()) throw new Error("服务未返回可用的快速初稿。");
   state.qaPollToken += 1;
   const pollToken = state.qaPollToken;
   state.currentResult = data; state.historyId = data.historyId || state.historyId;
@@ -288,12 +322,12 @@ function renderResultV43(data, scroll = true) {
   const v1Prompt = data.versions?.v1?.prompt || "";
   elements.outputV1.value = v1Prompt; elements.outputV1.disabled = !v1Prompt; elements.copyV1.disabled = !v1Prompt;
   elements.sourceVersion.value = "v0"; elements.sourceVersion.options[1].disabled = !v1Prompt;
-  elements.sourceVersion.options[1].textContent = v1Prompt ? "终版 Prompt（V1）" : "终版 Prompt（V1，生成中）";
-  elements.resultStatus.textContent = "初版已就绪 · 终版后台生成";
+  elements.sourceVersion.options[1].textContent = v1Prompt ? "专业优化稿" : "专业优化稿（检查中）";
+  elements.resultStatus.textContent = "初稿已就绪 · 优化稿正在检查";
   elements.sdTrace.textContent = data.sdMaster || "—"; elements.styleTrace.textContent = data.styleOutput || "未调用 Style Skill";
   elements.sdStatus.textContent = data.sdMaster ? "已调用" : "异常"; elements.styleStatus.textContent = data.styleUsed ? "已调用" : "跳过"; elements.modelStatus.textContent = data.model || "—";
   renderChecksV43(data); renderQaJob(data.qaJob, data.versions || {});
-  elements.result.hidden = false; elements.errorPanel.hidden = true; elements.run.disabled = false; elements.run.querySelector("span").textContent = "再次生成"; setProgress("merge", 100, "初版已生成，终版在后台处理");
+  elements.result.hidden = false; elements.errorPanel.hidden = true; elements.run.disabled = false; elements.run.querySelector("span").textContent = "再次生成"; setProgress("merge", 100, "快速初稿已生成，正在检查优化稿");
   if (scroll) elements.result.scrollIntoView({ behavior: "smooth", block: "start" });
   if (data.qaJob?.jobId && qaActiveStates.has(data.qaJob.status)) pollQaJob(data.qaJob, pollToken);
 }
@@ -305,7 +339,7 @@ renderResult = renderResultV43;
 async function buildInputPayload() {
   const storyImages = await filesToPayload(state.storyFiles);
   const styleImages = await filesToPayload(state.styleFiles);
-  return { taskType: elements.taskType.value, storyText: elements.storyText.value.trim(), styleText: elements.styleText.value.trim(), storyImages, styleImages };
+  return { taskType: elements.taskType.value, storyText: buildGuidedStory(), styleText: elements.styleText.value.trim(), storyImages, styleImages };
 }
 async function runWorkflow() {
   if (!elements.storyText.value.trim() && !state.storyFiles.length) return showError("请输入剧情 / 分镜文字，或加入至少一张图片。");
@@ -313,7 +347,7 @@ async function runWorkflow() {
   elements.run.disabled = true; elements.run.querySelector("span").textContent = "执行中…"; elements.result.hidden = true; elements.errorPanel.hidden = true; setProgress("route", 8, "整理输入与图片");
   let waitTicker = null;
   try {
-    state.currentPayload = await buildInputPayload(); setProgress("sd", 25, "SD Skill 正在生成母版");
+    state.currentPayload = await buildInputPayload(); setProgress("sd", 25, "正在理解故事并设计镜头");
     const startedAt = Date.now();
     waitTicker = setInterval(() => {
       const seconds = Math.floor((Date.now() - startedAt) / 1000);
@@ -360,7 +394,7 @@ async function refinePromptV43() {
   try {
     const context = { ...(state.currentPayload || {}), styleOutput: state.currentResult.styleOutput || "", sdMaster: state.currentResult.sdMaster || "" };
     const data = await fetchJson("/api/refine", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ currentPrompt: originalPrompt, sourceVersionId: sourceVersion?.versionId || "", instruction, context, messages: state.chatMessages, historyId: state.historyId }) });
-    state.chatMessages.push({ role: "assistant", content: "新的初版已生成，终版正在后台进行语义检查。" });
+    state.chatMessages.push({ role: "assistant", content: "新的快速初稿已生成，专业优化稿正在后台检查。" });
     renderChat(); renderResultV43(data, false); await refreshHistory(false);
   } catch (error) { state.chatMessages.push({ role: "assistant", content: `加工失败：${error.message}` }); renderChat(); }
   finally { elements.sendRefine.disabled = false; elements.sendRefine.querySelector("span").textContent = "发送并加工"; }
@@ -381,7 +415,7 @@ async function retryQa() {
   if (!jobId) return;
   elements.retryQa.disabled = true;
   elements.qaIssues.innerHTML = "";
-  appendQaParagraph("正在重新运行终版任务；初版 Prompt 不受影响。", "qa-pending");
+  appendQaParagraph("正在重新检查优化稿；快速初稿不受影响。", "qa-pending");
   try {
     const update = await fetchJson(`/api/jobs/${encodeURIComponent(jobId)}/retry`, {
       method: "POST",
@@ -486,12 +520,13 @@ elements.run.onclick = runWorkflow; elements.copy.onclick = async () => {
     else showToast("复制失败，请在结果框中按 Ctrl / ⌘ + C", true);
   }
 };
-elements.copy.onclick = () => copyPrompt(elements.output.value, "初版 Prompt 已复制", elements.output);
-elements.copyV1.onclick = () => copyPrompt(elements.outputV1.value, "终版 Prompt 已复制", elements.outputV1);
+elements.copy.onclick = () => copyPrompt(elements.output.value, "快速初稿已复制", elements.output);
+elements.copyV1.onclick = () => copyPrompt(elements.outputV1.value, "专业优化稿已复制", elements.outputV1);
 elements.retryQa.onclick = retryQa;
 elements.storyFiles.onchange = (e) => { acceptFiles("story", e.target.files); e.target.value = ""; }; elements.styleFiles.onchange = (e) => { acceptFiles("style", e.target.files); e.target.value = ""; };
 elements.pasteStory.onclick = () => pasteFromClipboard("story"); elements.pasteStyle.onclick = () => pasteFromClipboard("style"); document.addEventListener("paste", handlePaste); $$('.drop-target').forEach(setupDropTarget); $$('[data-input-kind]').forEach((card) => card.addEventListener("pointerdown", () => setPasteTarget(card.dataset.inputKind)));
 elements.taskOptions.forEach((button) => button.onclick = () => selectTaskType(button.dataset.taskValue));
+elements.templateCards.forEach((button) => button.onclick = () => selectCreationTemplate(button.dataset.template));
 elements.apiBadge.onclick = openApiModal; elements.apiBackdrop.onclick = closeApiModal; elements.closeApiModal.onclick = closeApiModal; elements.saveApiKey.onclick = configureApiKey; elements.clearApiKey.onclick = clearApiKey; elements.toggleApiKey.onclick = () => { const visible = elements.apiKeyInput.type === "text"; elements.apiKeyInput.type = visible ? "password" : "text"; elements.toggleApiKey.textContent = visible ? "显示" : "隐藏"; };
 elements.browseFolders.onclick = () => { elements.folderBrowser.hidden = !elements.folderBrowser.hidden; if (!elements.folderBrowser.hidden) loadFolderBrowser(elements.historyPathInput.value.trim()); };
 elements.folderRoots.onclick = () => loadFolderBrowser(""); elements.folderUp.onclick = () => loadFolderBrowser(elements.folderUp.dataset.parent || "");

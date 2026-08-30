@@ -1,0 +1,25 @@
+name: 产品建议
+description: 提出面向创作者的体验或能力建议
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你想解决什么创作问题？
+      description: 请从用户目标描述，不要只给出技术方案。
+    validations:
+      required: true
+  - type: textarea
+    id: workflow
+    attributes:
+      label: 你现在如何完成这件事？
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: 理想结果是什么？
+    validations:
+      required: true
+
