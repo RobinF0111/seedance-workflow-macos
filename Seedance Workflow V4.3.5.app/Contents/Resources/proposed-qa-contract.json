@@ -1,0 +1,92 @@
+{
+  "type": "json_schema",
+  "name": "seedance_semantic_qa_v43",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "qaContractVersion": {
+        "type": "string",
+        "enum": ["v4.3-semantic-qa-2"]
+      },
+      "verdict": {
+        "type": "string",
+        "enum": ["pass", "repair_required"]
+      },
+      "summary": {
+        "type": "string",
+        "minLength": 1
+      },
+      "issues": {
+        "type": "array",
+        "maxItems": 8,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {"type": "string", "minLength": 1},
+            "severity": {
+              "type": "string",
+              "enum": ["minor", "major", "blocker"]
+            },
+            "owner": {
+              "type": "string",
+              "enum": ["sd", "style", "conflict_repair"]
+            },
+            "category": {
+              "type": "string",
+              "enum": [
+                "story_match",
+                "narrative_reasonableness",
+                "internal_contradiction",
+                "content_safety",
+                "shot_description_quality",
+                "character_action",
+                "camera_motivation",
+                "camera_execution",
+                "character_continuity",
+                "scene_continuity",
+                "reference_consistency",
+                "style_reasonableness",
+                "light_reasonableness",
+                "sound_continuity"
+              ]
+            },
+            "section": {
+              "type": "string",
+              "enum": ["style", "light", "references", "scene", "shots", "performance", "negative"]
+            },
+            "shotId": {"type": "string", "minLength": 1},
+            "target": {"type": "string", "minLength": 1},
+            "evidence": {"type": "string", "minLength": 1},
+            "problem": {"type": "string", "minLength": 1},
+            "repairInstruction": {"type": "string", "minLength": 1},
+            "acceptanceCriteria": {"type": "string", "minLength": 1}
+          },
+          "required": [
+            "id",
+            "severity",
+            "owner",
+            "category",
+            "section",
+            "shotId",
+            "target",
+            "evidence",
+            "problem",
+            "repairInstruction",
+            "acceptanceCriteria"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "reviewedSections": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": ["style", "light", "references", "scene", "shots", "performance", "negative"]
+        }
+      }
+    },
+    "required": ["qaContractVersion", "verdict", "summary", "issues", "reviewedSections"],
+    "additionalProperties": false
+  }
+}

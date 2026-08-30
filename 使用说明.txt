@@ -1,0 +1,19 @@
+Seedance Workflow · macOS V4.3.5 Stable
+========================================
+
+启动方法
+1. 解压 ZIP。
+2. 双击“Seedance Workflow V4.3.5.app”。
+3. 第一次运行若被 macOS 拦截，请右键 App，选择“打开”。
+4. 在页面右上角配置 OpenAI API Key。
+
+本版本适用于 Apple Silicon（M1 及之后的 Mac）。
+程序优先使用 Chrome、Edge 或 Chromium 独立窗口；未安装时使用默认浏览器。
+
+持续更新 Skill
+程序旁边的 skills 文件夹包含：
+- sd-prompt-wip
+- style-constraint
+- seedance-qa-gate
+
+更新时直接替换同名文件夹即可。API Key 不会写入 Skill 文件。

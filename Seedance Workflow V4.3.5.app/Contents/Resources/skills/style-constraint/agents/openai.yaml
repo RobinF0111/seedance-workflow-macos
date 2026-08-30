@@ -1,0 +1,7 @@
+interface:
+  display_name: "风格限定 Skill"
+  short_description: "根据参考图动态限定摄影风格并保留固定质量约束"
+  default_prompt: "Use $style-constraint to analyze my reference image and output the two-part cinematography specification."
+
+policy:
+  allow_implicit_invocation: true

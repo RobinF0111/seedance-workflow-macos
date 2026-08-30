@@ -1,0 +1,4 @@
+interface:
+  display_name: "sd提示词WIP skill"
+  short_description: "生成影视级 Seedance 提示词，强制景别、精简起幅并按剧情选择运镜"
+  default_prompt: "Use $sd-prompt-wip to turn this scene into a production-ready Chinese Seedance prompt."
