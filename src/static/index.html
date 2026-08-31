@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Seedance 提示词导演 V4.3.5</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css?v=4.3.5-consumer">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero compact-hero">
+      <div class="hero-copy">
+        <span class="eyebrow"><i class="signal"></i>SEEDANCE 提示词导演 · V4.3.5</span>
+        <h1>把故事变成<br><em>专业分镜提示词</em></h1>
+        <p>输入一句创意、剧情或参考图片，自动完成故事理解、镜头设计、视觉风格与连续性检查。最终结果可复制到 Seedance 等视频生成平台使用；本应用本身不直接生成视频。</p>
+      </div>
+      <aside class="pipeline-card">
+        <div class="pipeline-title"><span>创作流程</span><button id="apiBadge" class="api-badge offline" type="button">检查连接</button></div>
+        <ol class="pipeline-list">
+          <li><span>01</span><div><strong>理解故事</strong><small>锁定人物、剧情、台词与素材用途</small></div></li>
+          <li><span>02</span><div><strong>设计镜头</strong><small>完善表演、构图、运镜与声音</small></div></li>
+          <li><span>03</span><div><strong>统一视觉</strong><small>根据参考图整理摄影风格与光影</small></div></li>
+          <li><span>04</span><div><strong>检查问题</strong><small>核对人物、镜头、参考与连续性</small></div></li>
+        </ol>
+      </aside>
+    </header>
+
+    <main>
+      <section class="memory-bar">
+        <div><span class="step-kicker">本地项目记录</span><h2>继续以前的创作</h2><p id="historyLocation">尚未选择存储目录</p></div>
+        <div class="memory-actions"><button id="chooseHistory" class="button ghost" type="button">设置存储位置</button><button id="openHistory" class="button ghost" type="button">浏览历史</button></div>
+      </section>
+
+      <section class="starter-section" aria-labelledby="starterTitle">
+        <div class="starter-heading"><div><span class="step-kicker">快速创作</span><h2 id="starterTitle">先选择你想制作的内容</h2></div><p>模板只负责帮你开始，不会限制后续修改。选择后仍可自由编辑全部内容。</p></div>
+        <div class="template-grid" role="list">
+          <button class="template-card" type="button" data-template="product"><strong>商品广告</strong><small>突出卖点、包装与品牌视觉</small></button>
+          <button class="template-card" type="button" data-template="portrait"><strong>人物短片</strong><small>人物气质、动作与情绪表达</small></button>
+          <button class="template-card" type="button" data-template="story"><strong>剧情短剧</strong><small>人物关系、对白与情节转折</small></button>
+          <button class="template-card" type="button" data-template="image"><strong>图生视频</strong><small>让静态图片产生自然运动</small></button>
+          <button class="template-card" type="button" data-template="music"><strong>MV / 音乐视觉</strong><small>节奏、氛围与视觉段落设计</small></button>
+          <button class="template-card" type="button" data-template="look"><strong>镜头风格复刻</strong><small>提取参考图的摄影与光影语言</small></button>
+        </div>
+        <div class="guide-grid">
+          <label><span>发布平台</span><select id="targetPlatform"><option value="未指定">暂不指定</option><option>抖音</option><option>小红书</option><option>B站</option><option>YouTube</option><option>广告投放</option><option>其他</option></select></label>
+          <label><span>目标时长</span><select id="targetDuration"><option value="未指定">暂不指定</option><option>5 秒</option><option>10 秒</option><option>15 秒</option><option>30 秒</option><option>60 秒</option></select></label>
+          <label><span>画面比例</span><select id="targetRatio"><option value="未指定">暂不指定</option><option>9:16 竖屏</option><option>16:9 横屏</option><option>1:1 方形</option><option>2.35:1 宽银幕</option></select></label>
+          <label class="guide-wide"><span>一句话创意</span><input id="creativeBrief" type="text" placeholder="例如：雨夜车站里，一次没有说出口的告别"></label>
+        </div>
+        <p id="templateHint" class="template-hint">还没有选择模板；你也可以直接在下方输入完整剧情。</p>
+      </section>
+
+      <section class="trust-strip"><div><strong>你的 Key</strong><span>由当前 macOS 账户在本机保存</span></div><div><strong>你的项目</strong><span>历史目录由你选择，可随时停用</span></div><div><strong>外发内容</strong><span>生成时会向 OpenAI 发送输入文字与图片</span></div></section>
+
+      <section class="input-intro"><div><span class="step-kicker">补充创作内容</span><h2>写下故事，或直接拖入图片</h2></div><p>图片会先在本机压缩，再随生成请求发送至 OpenAI。若请求超过服务限制，系统会明确提示。</p></section>
+      <section class="workspace-grid raw-input-grid">
+        <article class="input-card story-card paste-target drop-target active-paste-target" data-input-kind="story">
+          <div class="card-heading"><div><span class="step-number">01</span><h2>故事与画面</h2></div><span class="tag">必填</span></div>
+          <p id="storyHelper" class="helper">用自然语言描述人物、地点和发生的事情；也可以上传角色图、商品图、场景图或分镜图。</p>
+          <textarea id="storyText" spellcheck="false" aria-label="故事与画面输入" placeholder="例如：夜雨中，角色 A 追上准备离开的角色 B。角色 B 说完最后一句话后上车离开……"></textarea>
+          <div class="media-input-actions">
+            <button id="pasteStory" class="paste-action" type="button"><span class="paste-icon">⌘</span><span><strong>粘贴剪贴板截图</strong><small>点击这里，或直接按 Ctrl / ⌘ + V</small></span></button>
+            <label class="file-action" for="storyFiles"><input id="storyFiles" type="file" accept="image/*" multiple><span>选择或拖入图片</span><small>不限制张数</small></label>
+          </div>
+          <div class="drop-hint">松开鼠标，将图片加入剧情 / 分镜输入</div>
+          <div id="storyPreview" class="file-preview" aria-live="polite"></div>
+        </article>
+        <article class="input-card style-card paste-target drop-target" data-input-kind="style">
+          <div class="card-heading"><div><span class="step-number">02</span><h2>视觉风格</h2></div><span class="tag style-tag">选填</span></div>
+          <p class="helper">描述你想要的画面感觉，或上传一张、多张风格参考图；无需了解摄影术语。</p>
+          <textarea id="styleText" spellcheck="false" aria-label="风格输入" placeholder="例如：低饱和冷蓝调、潮湿空气感、柔和窗前自然光……"></textarea>
+          <div class="media-input-actions">
+            <button id="pasteStyle" class="paste-action style-paste-action" type="button"><span class="paste-icon">⌘</span><span><strong>粘贴剪贴板截图</strong><small>点击这里，或直接按 Ctrl / ⌘ + V</small></span></button>
+            <label class="file-action" for="styleFiles"><input id="styleFiles" type="file" accept="image/*" multiple><span>选择或拖入图片</span><small>不限制张数</small></label>
+          </div>
+          <div class="drop-hint">松开鼠标，将图片加入风格输入</div>
+          <div id="stylePreview" class="file-preview" aria-live="polite"></div>
+        </article>
+      </section>
+
+      <section class="execution-card">
+        <div class="execution-copy"><span class="step-kicker">准备生成</span><h2>生成专业提示词方案</h2><p id="executionHint">正在检查本地服务与 API 状态。</p></div>
+        <div class="run-area">
+          <div class="task-selector"><span id="taskTypeLabel" class="select-label">任务类型</span><input id="taskType" type="hidden" value="generate"><div class="task-type-options" role="radiogroup" aria-labelledby="taskTypeLabel"><button class="task-type-option selected" type="button" role="radio" aria-checked="true" data-task-value="generate">生成新提示词</button><button class="task-type-option" type="button" role="radio" aria-checked="false" data-task-value="optimize">提示词优化</button></div><small id="taskRule" class="task-rule">从剧情或分镜建立完整提示词</small></div>
+          <button id="runButton" class="button primary run-button" type="button"><span>开始生成</span><span>↘</span></button>
+        </div>
+      </section>
+      <section id="runProgress" class="run-progress" hidden aria-live="polite"><div class="progress-head"><span>创作进度</span><span id="progressLabel">准备执行</span></div><div class="progress-track"><i id="progressBar"></i></div><div class="progress-steps"><span data-stage="route">整理素材</span><span data-stage="sd">设计镜头</span><span data-stage="style">统一视觉</span><span data-stage="merge">完成方案</span></div></section>
+
+      <section id="resultSection" class="result-section generated-result" hidden aria-live="polite">
+        <div class="result-topline"><div><span class="step-kicker">创作结果</span><h2>Seedance 提示词方案</h2></div><div id="resultStatus" class="status success"><span></span>初稿已完成，优化稿正在检查</div></div>
+        <div class="result-grid">
+          <article class="output-card version-card v0-card"><div class="output-toolbar"><div><span>快速初稿</span><strong>初稿</strong></div><button id="copyButton" class="text-button" type="button">复制初稿</button></div><p class="version-note">镜头方案完成后立即提供，方便你先查看和使用。</p><textarea id="output" spellcheck="false" aria-label="提示词初稿"></textarea></article>
+          <article class="output-card version-card v1-card"><div class="output-toolbar"><div><span>专业优化稿</span><strong>优化稿</strong></div><button id="copyV1Button" class="text-button" type="button" disabled>复制优化稿</button></div><p id="v1Status" class="version-note pending">正在检查人物、剧情、镜头执行与连续性。</p><textarea id="outputV1" spellcheck="false" aria-label="提示词优化稿" placeholder="检查完成后，优化稿会显示在这里" disabled></textarea></article>
+          <aside class="qa-card qa-card-wide"><div class="qa-heading"><span>人物与镜头检查</span><span id="qaCount">后台检查中</span></div><ul id="qaList" class="qa-list"></ul><div id="qaIssues" class="qa-issues"></div><button id="retryQaButton" class="button ghost qa-retry" type="button" hidden>重新检查优化稿</button><div class="run-meta"><span>故事与镜头设计</span><strong id="sdStatus">—</strong><span>视觉风格</span><strong id="styleStatus">—</strong><span>结果版本</span><strong>初稿 / 优化稿</strong><span>AI 模型</span><strong id="modelStatus">—</strong></div></aside>
+        </div>
+        <div hidden aria-hidden="true"><pre id="sdTrace"></pre><pre id="styleTrace"></pre></div>
+
+        <section class="chat-panel">
+          <div class="chat-head"><div><span class="step-kicker">局部修改</span><h2>继续完善方案</h2></div><label class="version-source">从哪个版本修改<select id="sourceVersion"><option value="v0">快速初稿</option><option value="v1" disabled>专业优化稿（生成中）</option></select></label></div>
+          <div id="chatMessages" class="chat-messages"><div class="chat-empty">可以说“只修改第三个镜头的运镜，其他内容保持不变”。</div></div>
+          <div class="chat-compose"><textarea id="chatInstruction" placeholder="输入本轮修改要求……"></textarea><button id="sendRefine" class="button primary" type="button"><span>发送并加工</span><span>↗</span></button></div>
+        </section>
+      </section>
+      <section id="errorPanel" class="workflow-error" hidden aria-live="assertive"><span>生成未完成</span><h2>这次没有生成结果</h2><p id="errorText"></p></section>
+    </main>
+
+    <div id="historyModal" class="api-modal" hidden><button class="api-backdrop" data-close-history type="button" aria-label="关闭历史记录"></button><section class="api-dialog history-dialog" role="dialog" aria-modal="true" aria-labelledby="historyTitle"><div class="api-dialog-head"><span>LOCAL HISTORY</span><button data-close-history type="button">×</button></div><div class="api-dialog-body"><h2 id="historyTitle">浏览过往记录</h2><div class="history-search"><input id="historySearch" type="search" placeholder="搜索剧情、风格或输出"><button id="refreshHistory" class="button ghost" type="button">刷新</button></div><div id="historyList" class="history-list"></div><div id="historyDetail" class="history-detail" hidden><h3 id="historyDetailTitle"></h3><p id="historyDetailMeta"></p><div class="history-load-actions"><button id="loadHistoryInput" class="button ghost" type="button">载入输入</button><button id="loadHistoryOutput" class="button ghost" type="button">载入输出</button><button id="loadHistoryAll" class="button primary" type="button"><span>载入输入和输出</span><span>↙</span></button></div></div></div></section></div>
+    <div id="historySetupModal" class="api-modal" hidden><button class="api-backdrop" data-skip-history type="button"></button><section class="api-dialog history-setup-dialog" role="dialog" aria-modal="true" aria-labelledby="historySetupTitle"><div class="api-dialog-head"><span>LOCAL MEMORY SETUP</span></div><div class="api-dialog-body"><span class="step-kicker">首次使用 V3</span><h2 id="historySetupTitle">历史记录存在哪里？</h2><p>由你决定本地存储位置。可以浏览本机文件夹，也可以输入一个尚不存在的新路径，软件会自动创建。保存内容包括输入、输出和图片，不包含 API Key。</p><label class="api-key-label" for="historyPathInput">LOCAL FOLDER PATH</label><div class="history-path-field"><input id="historyPathInput" type="text" spellcheck="false" autocomplete="off" placeholder="例如：D:\Seedance项目\历史记录"><button id="browseFolders" type="button">浏览本机文件夹</button></div><div id="folderBrowser" class="folder-browser" hidden><div class="folder-browser-toolbar"><button id="folderRoots" class="button ghost" type="button">磁盘列表</button><button id="folderUp" class="button ghost" type="button">上一级</button></div><code id="currentFolder">请选择磁盘或文件夹</code><div id="folderList" class="folder-list"></div><button id="useCurrentFolder" class="button primary" type="button" disabled><span>选择当前文件夹</span><span>✓</span></button></div><div id="historySetupMessage" class="api-setup-message" aria-live="polite">尚未选择位置。请浏览文件夹或直接输入完整路径。</div><div class="api-dialog-actions history-setup-actions"><button class="button ghost" data-skip-history type="button">暂不启用</button><button id="setupHistory" class="button primary" type="button"><span>保存此位置</span><span>✓</span></button></div></div></section></div>
+    <div id="apiModal" class="api-modal" hidden><button id="apiBackdrop" class="api-backdrop" type="button"></button><section class="api-dialog" role="dialog" aria-modal="true" aria-labelledby="apiDialogTitle"><div class="api-dialog-head"><span>LOCAL API SETUP</span><button id="closeApiModal" type="button">×</button></div><div class="api-dialog-body"><span class="step-kicker">仅限本机</span><h2 id="apiDialogTitle">连接 OpenAI API</h2><p id="apiDialogDescription">验证成功后使用当前系统账户加密保存。</p><label id="apiKeyLabel" class="api-key-label" for="apiKeyInput">OPENAI API KEY</label><div class="api-key-field"><input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false"><button id="toggleApiKey" type="button">显示</button></div><div id="apiSetupMessage" class="api-setup-message"></div><div class="api-dialog-actions"><button id="clearApiKey" class="button ghost danger-button" type="button">清除当前密钥</button><button id="saveApiKey" class="button primary" type="button"><span>验证并连接</span><span>↗</span></button></div><small class="api-security-note">不要把 API Key 发给他人或写入公开文件。</small></div></section></div>
+    <div id="pasteToast" class="paste-toast" role="status" aria-live="polite" hidden></div>
+    <footer><span>SEEDANCE 提示词导演</span><span>V4.3.5 · 本地优先 · 专业镜头检查</span></footer>
+  </div>
+  <script src="app.js?v=4.3.5-consumer"></script>
+</body>
+</html>

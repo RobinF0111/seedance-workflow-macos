@@ -32,5 +32,4 @@
 
 ## 已知信任边界
 
-当前仓库提供的是已构建 macOS 应用，核心本地服务位于编译产物 `server.code` 中，尚未提供完整的可复现构建链。当前应用为 ad-hoc 签名，尚未完成 Apple Developer ID 签名与 notarization。在这两项完成前，发布说明必须明确披露这一状态，不得宣称已通过 Apple 公证。
-
+仓库已经开放桌面启动器、前端、Skill、契约和构建配置；但核心本地服务仍位于遗留编译组件 `src/server.code` 中，尚未提供对应实现源码，因此不是完全可审计、完全可复现的源码链。当前应用为 ad-hoc 签名，尚未完成 Apple Developer ID 签名与 notarization。在这些事项完成前，发布说明必须明确披露，不得宣称已通过 Apple 公证或已实现全源码构建。

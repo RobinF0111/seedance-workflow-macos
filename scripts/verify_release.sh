@@ -5,8 +5,10 @@ root_dir="$(cd "$(dirname "$0")/.." && pwd)"
 static_dir="$root_dir/Seedance Workflow V4.3.5.app/Contents/Resources/static"
 
 node --check "$static_dir/app.js"
+node --check "$root_dir/src/static/app.js"
 test -s "$static_dir/index.html"
 test -s "$static_dir/styles.css"
+python3 -c 'import ast, pathlib; [ast.parse(pathlib.Path(path).read_text(encoding="utf-8"), filename=path) for path in ("src/desktop_app.py", "src/server.py")]'
 
 if grep -REn --exclude-dir=.git --exclude='*.md' --exclude='verify_release.sh' \
   'sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|OPENAI_API_KEY[[:space:]]*=' "$root_dir"; then

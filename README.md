@@ -8,6 +8,14 @@ Seedance Workflow 将一句创意、剧情梗概、分镜、参考图片或已�
 
 > 当前稳定版本：V4.3.5 · macOS · Apple Silicon
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-d6ff5f.svg)](LICENSE)
+
+## 开源状态
+
+本项目以 [MIT License](LICENSE) 开源，欢迎学习、使用、修改和贡献。桌面启动器、C 端前端、三个 Skill、质量契约和构建配置位于 `src/` 与 `skills/`。
+
+需要特别说明：V4.3.5 的核心本地工作流服务目前仍以遗留编译组件 `src/server.code` 提供，`src/server.py` 是兼容加载器，并非核心实现源码。因此当前仓库尚未达到“所有运行逻辑均可审计和完全可复现”的状态。社区可以继续使用和改进已开放部分；后续目标是找回或重写该服务，实现全源码构建。
+
 ## 产品能力
 
 - **从零生成提示词**：输入剧情、人物、场景和创作要求，生成完整的 Seedance 影视提示词。
@@ -263,6 +271,32 @@ Seedance Workflow macOS V4.3.5 Stable/
 └── 使用说明.txt                    # 简版启动说明
 ```
 
+## 源码结构与开发
+
+```text
+src/
+├── desktop_app.py                   # macOS 桌面启动器
+├── server.py                        # 遗留服务兼容加载器
+├── server.code                      # V4.3.5 遗留编译服务组件
+├── static/                          # C 端 Web 界面源码
+├── contracts/                       # QA 与修复数据契约
+└── Seedance Workflow V4.3.5.spec    # PyInstaller 构建配置
+skills/                              # 三个可独立维护的能力模块
+scripts/                             # 构建与仓库验证脚本
+```
+
+开发构建：
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -r requirements-dev.txt
+bash scripts/verify_release.sh
+bash scripts/build_macos.sh
+```
+
+构建输出位于 `dist/`。本地构建默认不是 Apple Developer ID 正式签名版本，也不会自动完成 notarization。
+
 ## 使用边界
 
 - AI 生成结果可能存在偏差，重要项目应由创作者或制作团队进行最终审核；
@@ -285,4 +319,4 @@ Seedance Workflow macOS V4.3.5 Stable/
 - [产品路线图](ROADMAP.md)：已完成项目与后续计划；
 - [参与贡献](CONTRIBUTING.md)：缺陷、建议和代码改动要求。
 
-当前仓库尚未确定开源或商业授权协议。在仓库所有者发布明确的 `LICENSE` 前，默认版权规则仍然适用，不应假定可以复制、修改或再分发。
+项目原创代码与文档使用 [MIT License](LICENSE)。依赖、模型服务、视频平台及用户素材仍分别受其自身条款和许可证约束。

@@ -5,4 +5,8 @@
 !/.env.example
 __pycache__/
 *.py[cod]
+build/
+dist/
+.venv/
+*.spec.bak
 
